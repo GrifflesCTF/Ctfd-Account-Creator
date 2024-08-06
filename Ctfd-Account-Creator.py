@@ -167,7 +167,7 @@ def parse_args():
 	parser.add_argument("-u", "--url", dest="url", required=True, help="Url of the Ctfd.")
 	parser.add_argument("-c", "--config", dest="config_path", required=True, help="Path of the config (*.json).")
 	parser.add_argument("-v", "--verbose", dest="verbose", action="store_true", default=False, help="Use verbose mode.")
-	parser.add_argument("-q", "--quit", dest="quiet", action="store_true", default=False, help="Use quiet mode.")
+	parser.add_argument("-q", "--quiet", dest="quiet", action="store_true", default=False, help="Use quiet mode.")
 	parser.add_argument("-d", "--discord", dest="discord", action="store_true", default=False, help="Displays the account created in a Discord Message template")
 	args = parser.parse_args()
 	return args
@@ -177,7 +177,7 @@ def main():
 
 	## INIT
 	args = parse_args()
-	if(not args.quit):
+	if(not args.quiet):
 		header()
 	os.chdir(os.path.abspath(os.getcwd()))
 	session = requests.session()
@@ -197,45 +197,47 @@ def main():
 	else:
 
 		## Load config file
-		config = json.loads(open(args.config_path, "r").read())
+		config = json.loads(open(args.config_path, "r", encoding="UTF-8").read())
 
 		## Create account for all users
-		for user in config["users"]:
+		for i in range(len(config)):
 
-			session.cookies.clear()
+			for user in config[i]["users"]:
 
-			# If Mail/Password Empty in Json
-			if(user[1] == ""):
-				user[1] = "%s@tempmail.com"%(''.join(random.choice("abcdefghijklmnopqrstuvwxyz") for i in range(12)))
-			if(user[2] == ""):
-				user[2] = ''.join(random.choice("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-*:/;.") for i in range(12))
+				session.cookies.clear()
 
-			data = {
-				"pseudo":user[0],
-				"email":user[1],
-				"password":user[2],
-				"team":config["team"],
-				"team_password":config["teampwd"],
-				}
+				# If Mail/Password Empty in Json
+				if(user[1] == ""):
+					user[1] = "%s@tempmail.com"%(''.join(random.choice("abcdefghijklmnopqrstuvwxyz") for i in range(12)))
+				if(user[2] == ""):
+					user[2] = ''.join(random.choice("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-*:/;.") for i in range(12))
 
-			succeed,in_team = Ctfd_Register(session,data,args)
-			
-			
-			if(succeed):
-				if(not args.discord):
-					print(f" [+] User successfully created !\n")
+				data = {
+					"pseudo":user[0],
+					"email":user[1],
+					"password":user[2],
+					"team":config[i]["team"],
+					"team_password":config[i]["teampwd"],
+					}
+
+				succeed,in_team = Ctfd_Register(session,data,args)
+				
+				
+				if(succeed):
+					if(not args.discord):
+						print(f" [+] User successfully created !\n")
+					else:
+						print("```")
+					print(f"    \t- {'Name:':<12}\t{data['pseudo']:>12}")
+					print(f"    \t- {'Password:':<12}\t{data['password']:>12}")
+					print(f"    \t- {'Email:':<12}\t{data['email']:>12}")
+					if(in_team):
+						print(f"    \t- {'Team:':<12}\t{data['team']:>12}")
+						print(f"    \t- {'Team Pass:':<12}\t{data['team_password']:>12}")
+					if(args.discord):
+						print("```")		
 				else:
-					print("```")
-				print(f"    \t- {'Name:':<12}\t{data['pseudo']:>12}")
-				print(f"    \t- {'Password:':<12}\t{data['password']:>12}")
-				print(f"    \t- {'Email:':<12}\t{data['email']:>12}")
-				if(in_team):
-					print(f"    \t- {'Team:':<12}\t{data['team']:>12}")
-					print(f"    \t- {'Team Pass:':<12}\t{data['team_password']:>12}")
-				if(args.discord):
-					print("```")		
-			else:
-				print("\n [+] Failed To Login/Create the account %s"%user[0])
+					print("\n [+] Failed To Login/Create the account %s"%user[0])
 
 
 
