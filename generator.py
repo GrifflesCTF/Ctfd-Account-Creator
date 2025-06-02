@@ -26,6 +26,17 @@ def csv_to_json(csv_file, json_file):
             team_name = row[0]
             team_password = generate_password()
             
+            # Add teambracket based on Team Leader's Class
+            tl_class = row[4]  # TL Class
+            if len(tl_class) == 6:
+                team_bracket = 1
+            elif len(tl_class) == 2:
+                team_bracket = 2
+            elif len(tl_class) == 3:
+                team_bracket = 3
+            else:
+                raise ValueError(f"Team Leader Class '{tl_class}' for team '{team_name}' must be 2, 3, or 6 characters long")
+            
             # Initialize users list
             users = []
             
@@ -66,6 +77,7 @@ def csv_to_json(csv_file, json_file):
                 teams.append({
                     "team": team_name,
                     "teampwd": team_password,
+                    "teambracket": team_bracket,  # Add the new field
                     "users": users
                 })
     
