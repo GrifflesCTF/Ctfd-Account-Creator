@@ -6,6 +6,7 @@ import os
 import argparse
 from colorama import init, Fore, Style
 import time
+import html
 
 # Initialize colorama for cross-platform color support
 init()
@@ -38,12 +39,14 @@ def Check_Ctfd(session,url):
         return False
 
 
-def CheckTeam_Exist(url,req,user):
+def CheckTeam_Exist(url, req, user):
     try:
         resp = req.get(url+'/teams?field=name&q=%s'%user['team']).text
-        all_ = list(zip(*list(re.findall(r'<a href="/teams/(.*?)">(.*?)</a>',resp))))
+        all_ = list(zip(*list(re.findall(r'<a href="/teams/(.*?)">(.*?)</a>', resp))))
         if(len(all_) != 0):
-            if(user["team"].lower() in list((map(lambda x: x.lower(), all_[1])))):
+            # Decode HTML entities before comparing
+            decoded_names = list(map(lambda x: html.unescape(x).lower(), all_[1]))
+            if(user["team"].lower() in decoded_names):
                 return True        
         return False
     except Exception as ex:
@@ -89,6 +92,7 @@ def Join_Team(url,req,user):
 
 def Create_Team(url,req,user):
     try:
+        time.sleep(4)
         html = req.get(url + "/teams/new").text
         token = re.search(r"csrfNonce': \"(.*?)\",",html).group(1);    # Get token csrf
         post = {"name":user["team"],"password":user["team_password"],"bracket_id": int(user["team_bracket"]),"_submit":"Create","nonce":token}    # Post Data
@@ -264,7 +268,6 @@ def main():
                 else:
                     print(f" {ERROR}[❌] Failed to login/create account for {user[0]}{RESET}")
                 time.sleep(4)
-            time.sleep(4)
         print(f"\n {SUCCESS}[🏁] Process completed! Created {success_count}/{total_users} accounts successfully{RESET}")
 
 
