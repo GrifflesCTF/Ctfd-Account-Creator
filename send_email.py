@@ -43,7 +43,7 @@ def send_email(sender_email, password, recipient, cc_list, subject, body, use_ma
         print(f"❌ Error sending email to {recipient}: {e}")
         return False
 
-def generate_email_body(team_name, username, password, platform_link):
+def generate_email_body(team_name, username, password, platform_link, team_password):
     """Generate personalized email body with markdown formatting"""
     body = f"""Hallooooooo GrifflesCTF2025 Participants!
 
@@ -54,6 +54,7 @@ def generate_email_body(team_name, username, password, platform_link):
 * **Team Name:** {team_name}
 * **Username:** {username}
 * **Password:** {password}
+* **Team Password:** {team_password}
 
 Keep these safe and handy — you'll need them to access the CTF platform once the competition kicks off!
 You can also try to log in to the platform via the link below! If you encounter any issues, please reach out to us via the Discord server's tickets.
@@ -115,6 +116,7 @@ def main():
             continue
         
         team_name = team['team']
+        team_password = team['teampwd']
         print(f"\n🔄 Processing team: {team_name}")
         
         for user in team['users']:
@@ -128,7 +130,7 @@ def main():
             print(f"  📧 Processing: {username} ({email})")
             
             subject = f"GrifflesCTF 2025 Credentials for {username}"
-            body = generate_email_body(team_name, username, user_password, args.platform_link)
+            body = generate_email_body(team_name, username, user_password, args.platform_link, team_password)
             
             if not args.test:
                 success = send_email(args.sender, password, email, args.cc, subject, body, not args.plain_text)
